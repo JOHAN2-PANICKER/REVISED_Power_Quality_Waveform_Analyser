@@ -7,7 +7,7 @@
 #include "io.h"
 
 //Create a function to count number of rows in the CSV file.
-static int CountRows (const char*filename) { //static= fn only visible inside c. int = format of fn output.
+static int countRows (const char*filename) { //static= fn only visible inside c. int = format of fn output.
     FILE *fp = fopen(filename, "r");
     //Print error message if file cannot be opened.
     if (fp == NULL) {
@@ -23,7 +23,7 @@ static int CountRows (const char*filename) { //static= fn only visible inside c.
         fclose(fp);
         return 0;
     }
-    //Create while loop to count rows until empty.
+    //Create while loop to count rows after the header until empty.
     while (fgets(line,sizeof(line),fp) != NULL) {
         count++;
     }
@@ -42,11 +42,11 @@ static WaveformSample* allocateSamples(int count){
 }
 
 //Create a function that populates samples array using pointer-based access.
-static int populateSamples(FILE *fp,WaveformSample *samples){
-    char line [256];
+static int populateSamples(FILE *fp,WaveformSample *samples) {
+    char line[256];
 
     //Skip header row.
-    if (fgets(line,sizeof(line),fp) == NULL) {
+    if (fgets(line, sizeof(line), fp) == NULL) {
         return 0;
     }
     //Create pointer for pointer-based access.
@@ -65,8 +65,38 @@ static int populateSamples(FILE *fp,WaveformSample *samples){
                    &ptr->thd_percent) == 8) // '==8' included as fail-safe to ensure 8 rows of data is captured.
             ptr++; //pointer-based traversal.
     }
-    fclose(fp); //close the file once loop is completed.
-    return samples; //gives address to the populated array (address of first element).
+
+    return 1;
+
+}
+
+// Create function to load csv data into 'WaveformSample' array.
+WaveformSample *loadCSV(const char*filename, int *count){
+    *count = countRows(filename);
+    //Fail-safe if csv file is empty.
+    if (*count <= 0){
+        return NULL;
+    }
+    //Fail-safe if samples are empty.
+    WaveformSample*samples = allocateSamples(*count);
+    if (samples==NULL){
+        return NULL;
+    }
+    //Opening csv file for loadCSV.
+    FILE*fp = fopen(filename,"r");
+    if (fp==NULL){
+        printf("loadCSV:failed to open %s\n", filename);
+        free(samples);
+        return NULL;
     }
 
 
+    if (!populateSamples(fp,samples)) { //Not statement
+        printf("loadCSV: failed to populate samples.\n");
+        fclose(fp);
+        free(samples);
+        return NULL;
+    }
+    fclose(fp);
+    return samples;
+}
