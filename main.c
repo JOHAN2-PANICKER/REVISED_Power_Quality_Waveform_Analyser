@@ -25,22 +25,17 @@ int main(int argc, char*argv[]){ /*argc=argument count (how many strings passed)
         return 2;
     }
 #if RAW_DATA_TEST
-    printf("\n--- DEBUG: Loaded %d samples ---\n",count);
+    // This is a debug to check and confirm that main.c has successfully read and recorded the csv file data.
+    //Error code if raw data file is not created.
+    if (!writeRawData("raw_data.txt", samples, count)){
+        printf ("Failed to create raw_data.txt\n");
+        free(samples);
+        return 3;
 
-    WaveformSample *ptr = samples;
-
-    for (int i=0; i < count; i++, ptr++){
-        printf("Sample %d:\n",i);
-        printf("Time: %.3f\n",ptr->timestamp);
-        printf("Phase A Voltage: %.3f\n",ptr->phase_A_voltage);
-        printf("Phase B Voltage: %.3f\n",ptr->phase_B_voltage);
-        printf("Phase C Voltage: %.3f\n", ptr->phase_C_voltage);
-        printf("Current: %.3f\n", ptr->line_current);
-        printf("Freq: %.3f\n", ptr->frequency);
-        printf("PF: %.3f\n", ptr->power_factor);
-        printf("THD: %.3f\n", ptr->thd_percent);
-        printf("\n");
+        } else{
+        printf("raw_data.txt created successfully.\n");
     }
-
 #endif
+    free (samples);
+    return 0;
 }

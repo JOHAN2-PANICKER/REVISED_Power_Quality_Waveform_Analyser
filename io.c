@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include "io.h"
 
+#define RAW_DATA_TEST 1
+
 //Create a function to count number of rows in the CSV file.
 static int countRows (const char*filename) { //static= fn only visible inside c. int = format of fn output.
     FILE *fp = fopen(filename, "r");
@@ -100,3 +102,32 @@ WaveformSample *loadCSV(const char*filename, int *count){
     fclose(fp);
     return samples;
 }
+
+#if RAW_DATA_TEST
+int writeRawData (const char *filename, const WaveformSample *samples, int count) {
+    FILE *fp = fopen (filename, "w");
+    if (fp == NULL){
+        printf("writeRawData: failed to open %s\n",filename);
+        return 0;
+    }
+
+    fprintf(fp, "Sample, Time, Phase_A_Voltage, Phase_B_Voltage, Phase_C_Voltage, Current, Freq, PF, THD\n");
+
+    const WaveformSample *ptr = samples;
+
+    for (int i = 0; i < count; i++, ptr++){
+        fprintf(fp,"%d,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f\n",
+                i,
+                ptr->timestamp,
+                ptr->phase_A_voltage,
+                ptr->phase_B_voltage,
+                ptr->phase_C_voltage,
+                ptr->line_current,
+                ptr->frequency,
+                ptr->power_factor,
+                ptr->thd_percent);
+    }
+    fclose(fp);
+    return 1;
+}
+#endif
