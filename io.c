@@ -131,3 +131,4 @@ int writeRawData (const char *filename, const WaveformSample *samples, int count
     return 1;
 }
 #endif
+
