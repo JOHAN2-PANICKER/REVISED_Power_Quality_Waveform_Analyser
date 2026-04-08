@@ -21,4 +21,9 @@ typedef struct {
 }WaveformReport;
 
 WaveformReport analyseWaveform (const WaveformSample *samples, int count);
+
+// Temporary debug helpers.
+void debugRMSValidation (int count, const WaveformReport *report);
+void debugPhaseShiftCheck (const WaveformSample *samples, int count);
+
 #endif //REVISED_POWER_QUALITY_WAVEFORM_ANALYSER_WAVEFORM_H

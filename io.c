@@ -149,7 +149,7 @@ int writeResults (const char*filename, const WaveformReport *report){
     fprintf(fp,"Phase A: %.2f V\nPhase B: %.2f V\nPhase C: %.2f V\n",
             report->dcA, report->dcB, report->dcC);
 
-    fprintf(fp, "\nClipped Samples per-phase:\n");
+    fprintf(fp, "\nClipped Samples per-phase (|V| >= 324.9V, any phase):\n");
     fprintf(fp, "Phase A: %d\n Phase B: %d\n Phase C: %d\n",
             report->clipA, report->clipB, report->clipC);
 

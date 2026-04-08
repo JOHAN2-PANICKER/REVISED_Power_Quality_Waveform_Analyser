@@ -6,6 +6,8 @@
 #include "waveform.h"
 
 #define RAW_DATA_TEST 1
+#define RMS_VALIDATION_TEST 1
+#define PHASE_SHIFT_TEST 1
 
 int main(int argc, char*argv[]){ /*argc=argument count (how many strings passed),
  * argv= argument vector (array of character points, each entry is one string).
@@ -47,6 +49,15 @@ int main(int argc, char*argv[]){ /*argc=argument count (how many strings passed)
         printf("raw_data.txt created successfully.\n");
     }
 #endif
+
+#if RMS_VALIDATION_TEST
+    debugRMSValidation(count, &report);
+#endif
+
+#if PHASE_SHIFT_TEST
+    debugPhaseShiftCheck(samples, count);
+#endif
+
     free (samples);
     return 0;
 }

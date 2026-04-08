@@ -3,6 +3,7 @@
 /*All analysis functions: RMS, peak-to-peak, DC offset, clipping,
  * compliance check, and any extensions.*/
 
+#include <stdio.h>
 #include <stddef.h>
 #include <math.h>
 #include "waveform.h"
@@ -117,5 +118,53 @@ WaveformReport analyseWaveform (const WaveformSample *samples, int count) {
     report.compliantC = check_compliance(report.rmsC, 230.0);
 
     return report;
+
+}
+
+// Debug helper: validate RMS for each Phase.
+ void debugRMSValidation ( int count, const WaveformReport *report){
+    if (!report || count <= 0) return;
+    // RMS tolerance band.
+    double lower = 207.0;
+    double upper = 253.0;
+
+    printf("\n RMS Check (EN 50160 +-10% band):\n");
+
+    printf("Phase A: %.3f V (%s)\n",
+           report->rmsA,
+           (report->rmsA >= lower && report->rmsA <= upper) ? "OK" : "OUT OF RANGE");
+
+    printf("Phase B: %.3f V (%s)\n",
+           report->rmsB,
+           (report->rmsB >= lower && report->rmsB <= upper) ? "OK" : "OUT OF RANGE");
+
+    printf("Phase C: %.3f V (%s)\n",
+           report->rmsC,
+           (report->rmsC >= lower && report->rmsC <= upper) ? "OK" : "OUT OF RANGE");
+}
+
+//Debug Helper: validate Phase Shift between Phase A and Phase B.
+void debugPhaseShiftCheck (const WaveformSample *samples, int count){
+    if (!samples || count <= 0) return;
+
+    int idxA = 0, idxB = 0;
+
+    // loop to find the max voltage for Phase A and Phase B.
+    for (int i = 1; i < count; i++) {
+        if (samples[i].phase_A_voltage > samples[idxA].phase_A_voltage)
+            idxA = i;
+
+        if (samples[i].phase_B_voltage > samples [idxB].phase_B_voltage)
+            idxB = i;
+    }
+    //to calculate difference in rows between Phase A and Phase B.
+    int diff = idxB - idxA;
+    if (diff < 0) diff = -diff;
+
+
+    printf("\n Phase Shift Check at 50 Hz: \n");
+    printf("Row Difference (between Phase A and Phase B) = %d (%s) \n",
+           diff,
+           (diff == 33) ? "OK (~120 degree phase shift)" : "Phase Shift is not correct");
 
 }
