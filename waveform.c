@@ -11,7 +11,7 @@
  * phase=0 -> A, 1 -> B, 2-> C */
 static double getPhaseVoltage (const WaveformSample *sample, int phase) {
     if (phase == 0) return sample -> phase_A_voltage;
-    if (phase == 1) return sample -> phase_C_voltage;
+    if (phase == 1) return sample -> phase_B_voltage;
     return sample -> phase_C_voltage;
 }
 
@@ -57,4 +57,65 @@ static double compute_dc_offset(const WaveformSample *samples, int  n,int phase)
     for (int i = 0; i < n; i++, ptr++) {
         sum += getPhaseVoltage (ptr,phase);
     }return sum / n;
+}
+
+/* Count clipped samples for one phase
+ * Clipping threshold from PFE_AC_Waveforms_Reference.pdf:|voltage| >= 324.9 */
+static int count_clipped (const WaveformSample *samples, int n, int phase, double limit){
+    // variable to count the total clipped samples for each phase.
+    int count = 0;
+    const WaveformSample *ptr = samples;
+    // loop to identify the phase voltage of each sample.
+    for (int i = 0; i < n; i++, ptr++){
+        double v = getPhaseVoltage (ptr,phase);
+        // fabs () to calculate the absolute value of double v.
+        if (fabs (v) >= limit) {
+            count ++;
+        }
+    } return count;
+}
+/* Check EN 50160 compliance for 230 V +- 10%
+ * 207 V <= RMS <= 253 v */
+
+static int check_compliance (double rms, double nominal) {
+    double lower = nominal * 0.9;
+    double upper = nominal * 1.1;
+
+    return (rms >= lower && rms <= upper);
+}
+
+// Main analysisWaveform () function.
+WaveformReport analyseWaveform (const WaveformSample *samples, int count) {
+    WaveformReport report = {0};
+    // Error code if samples are empty.
+    if (samples == NULL || count <= 0){
+        return report;
+    }
+    // RMS
+    report.rmsA = compute_rms (samples, count, 0);
+    report.rmsB = compute_rms (samples, count, 1);
+    report.rmsC = compute_rms (samples, count, 2);
+
+    // Peak-to-Peak
+    report.p2pA = compute_peak_to_peak(samples, count , 0);
+    report.p2pB = compute_peak_to_peak(samples, count , 1);
+    report.p2pC = compute_peak_to_peak(samples, count , 2);
+
+    //DC Offset
+    report.dcA = compute_dc_offset(samples, count, 0);
+    report.dcB = compute_dc_offset(samples, count, 1);
+    report.dcC = compute_dc_offset(samples, count, 2);
+
+    // Clipped samples per phase
+    report.clipA = count_clipped (samples, count, 0, 324.9);
+    report.clipB = count_clipped (samples, count, 1, 324.9);
+    report.clipC = count_clipped (samples, count, 2, 324.9);
+
+    //Compliance
+    report.compliantA = check_compliance(report.rmsA, 230.0);
+    report.compliantB = check_compliance(report.rmsB, 230.0);
+    report.compliantC = check_compliance(report.rmsC, 230.0);
+
+    return report;
+
 }

@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include "io.h"
 
-#define RAW_DATA_TEST 1
-
 //Create a function to count number of rows in the CSV file.
 static int countRows (const char*filename) { //static= fn only visible inside c. int = format of fn output.
     FILE *fp = fopen(filename, "r");
@@ -103,7 +101,6 @@ WaveformSample *loadCSV(const char*filename, int *count){
     return samples;
 }
 
-#if RAW_DATA_TEST
 int writeRawData (const char *filename, const WaveformSample *samples, int count) {
     FILE *fp = fopen (filename, "w");
     if (fp == NULL){
@@ -130,5 +127,38 @@ int writeRawData (const char *filename, const WaveformSample *samples, int count
     fclose(fp);
     return 1;
 }
-#endif
 
+
+int writeResults (const char*filename, const WaveformReport *report){
+    FILE *fp = fopen(filename,"w");
+    if (fp == NULL){
+        return 0;
+    }
+    fprintf(fp,"Power Quality Analysis Results \n");
+    fprintf(fp,"-------------------------------\n");
+
+    fprintf(fp,"RMS Voltage: \n");
+    fprintf(fp,"Phase A: %.2f V\nPhase B: %.2f V\nPhase C: %.2f V\n",
+            report->rmsA,report->rmsB,report->rmsC);
+
+    fprintf(fp,"\nPeak-to-Peak Voltage:\n");
+    fprintf(fp,"Phase A: %.2f V\nPhase B: %.2f V\nPhase C: %.2f V\n",
+            report->p2pA, report->p2pB, report->p2pC);
+
+    fprintf(fp,"\nDC Offset:\n");
+    fprintf(fp,"Phase A: %.2f V\nPhase B: %.2f V\nPhase C: %.2f V\n",
+            report->dcA, report->dcB, report->dcC);
+
+    fprintf(fp, "\nClipped Samples per-phase:\n");
+    fprintf(fp, "Phase A: %d\n Phase B: %d\n Phase C: %d\n",
+            report->clipA, report->clipB, report->clipC);
+
+    fprintf(fp, "\nCompliance (+/-10%% of 230V):\n");
+    fprintf(fp, "Phase A: %s\nPhase B: %s\nPhase C: %s\n",
+            report->compliantA ? "PASS" : "FAIL",
+            report->compliantB ? "PASS" : "FAIL",
+            report->compliantC ? "PASS" : "FAIL");
+
+    fclose (fp);
+    return 1;
+}

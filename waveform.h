@@ -15,9 +15,9 @@ typedef struct {
 
     int compliantA, compliantB, compliantC;
 
-    double freqMin, freqMax;
+    /* double freqMin, freqMax;
     double pfMin, pfMax;
-    double thdMin, thdMax;
+    double thdMin, thdMax; */
 }WaveformReport;
 
 WaveformReport analyseWaveform (const WaveformSample *samples, int count);

@@ -15,7 +15,8 @@ int main(int argc, char*argv[]){ /*argc=argument count (how many strings passed)
 
     //Check if filename is provided.
     if (argc <2){ // check to ensure argv[0] has program name and argv[1] has filename.
-        printf("Usage: %s <csv_file>\n",argv[0]); // Error message prompting the correct layout for the CSV file.
+        // Error message prompting the correct layout for the CSV file.
+        printf("Usage: %s <csv_file>\n Add datasheet csv file into 'cmake-build-debug' folder.",argv[0]);
         return 1;
     }
 
@@ -23,6 +24,16 @@ int main(int argc, char*argv[]){ /*argc=argument count (how many strings passed)
     if (samples == NULL){
         printf("Failed to load CSV file in main.c.\n");
         return 2;
+    }
+
+    WaveformReport report = analyseWaveform (samples, count);
+
+    if (!writeResults ("results.txt", &report)) {
+        printf("Failed to write results file in main.\n");
+        free(samples);
+        return 3;
+    }else{
+        printf ("results.txt created successfully.\n");
     }
 #if RAW_DATA_TEST
     // This is a debug to check and confirm that main.c has successfully read and recorded the csv file data.
