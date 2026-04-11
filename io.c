@@ -9,7 +9,7 @@
 //Create a function to count number of rows in the CSV file.
 static int countRows (const char*filename) { //static= fn only visible inside c. int = format of fn output.
     FILE *fp = fopen(filename, "r");
-    //Print error message if file cannot be opened.
+    //Error message if file cannot be opened.
     if (fp == NULL) {
         printf("countRows: failed to open %s\n",filename);
         return -1;
@@ -73,16 +73,16 @@ static int populateSamples(FILE *fp,WaveformSample *samples) {
 // Create function to load csv data into 'WaveformSample' array.
 WaveformSample *loadCSV(const char*filename, int *count){
     *count = countRows(filename);
-    //Fail-safe if csv file is empty.
+    //Return if csv file has empty rows.
     if (*count <= 0){
         return NULL;
     }
-    //Fail-safe if samples are empty.
+    //Return if samples are empty.
     WaveformSample*samples = allocateSamples(*count);
     if (samples==NULL){
         return NULL;
     }
-    //Opening csv file for loadCSV.
+    //Return and error message if csv file failed to open.
     FILE*fp = fopen(filename,"r");
     if (fp==NULL){
         printf("loadCSV:failed to open %s\n", filename);
@@ -90,7 +90,7 @@ WaveformSample *loadCSV(const char*filename, int *count){
         return NULL;
     }
 
-
+    // Return and error message if function failed to populate samples.
     if (!populateSamples(fp,samples)) { //Not statement
         printf("loadCSV: failed to populate samples.\n");
         fclose(fp);
@@ -104,6 +104,7 @@ WaveformSample *loadCSV(const char*filename, int *count){
 int writeRawData (const char *filename, const WaveformSample *samples, int count) {
     FILE *fp = fopen (filename, "w");
     if (fp == NULL){
+        // Error message for writeRawData.
         printf("writeRawData: failed to open %s\n",filename);
         return 0;
     }
@@ -112,6 +113,7 @@ int writeRawData (const char *filename, const WaveformSample *samples, int count
 
     const WaveformSample *ptr = samples;
 
+    // Loop to print data of all samples for raw data file.
     for (int i = 0; i < count; i++, ptr++){
         fprintf(fp,"%d,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f\n",
                 i,
@@ -149,15 +151,22 @@ int writeResults (const char*filename, const WaveformReport *report){
     fprintf(fp,"Phase A: %.2f V\nPhase B: %.2f V\nPhase C: %.2f V\n",
             report->dcA, report->dcB, report->dcC);
 
-    fprintf(fp, "\nClipped Samples per-phase (|V| >= 324.9V, any phase):\n");
-    fprintf(fp, "Phase A: %d\nPhase B: %d\nPhase C: %d\n",
-            report->clipA, report->clipB, report->clipC);
+    fprintf(fp, "\nPhase Health Check (RMS Compliance (+/- 10%% of 230V) and Clipping): \n");
+    fprintf(fp,"\nPhase A: %s, %s\n",
+            (report->statusA & STATUS_OUT_OF_TOL) ? "OUT OF TOLERANCE" : "RMS COMPLIANT",
+            (report->statusA & STATUS_CLIPPED) ? "CLIPPED" : "NO CLIPPING");
+    fprintf(fp, "Number of Clipped Samples (|V| >= 324.9V): %d\n",report->clipA);
 
-    fprintf(fp, "\nCompliance (+/-10%% of 230V):\n");
-    fprintf(fp, "Phase A: %s\nPhase B: %s\nPhase C: %s\n",
-            report->compliantA ? "PASS" : "FAIL",
-            report->compliantB ? "PASS" : "FAIL",
-            report->compliantC ? "PASS" : "FAIL");
+    fprintf(fp,"\nPhase B: %s, %s\n",
+            (report->statusB & STATUS_OUT_OF_TOL) ? "OUT OF TOLERANCE" : "RMS COMPLIANT",
+            (report->statusB & STATUS_CLIPPED) ? "CLIPPED" : "NO CLIPPING");
+    fprintf(fp, "Number of Clipped Samples (|V| >= 324.9V): %d\n",report->clipB);
+
+    fprintf(fp,"\nPhase C: %s, %s\n",
+            (report->statusC & STATUS_OUT_OF_TOL) ? "OUT OF TOLERANCE" : "RMS COMPLIANT",
+            (report->statusC & STATUS_CLIPPED) ? "CLIPPED" : "NO CLIPPING");
+    fprintf(fp, "Number of Clipped Samples (|V| >= 324.9V): %d\n",report->clipC);
+
 
     fprintf(fp, "\nFrequency Range (over the 200 ms window):\n");
     fprintf(fp, "Min: %.3f Hz\nMax: %.3f Hz\nFrequency Drift: %.3f Hz\n",

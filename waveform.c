@@ -110,6 +110,7 @@ static void compute_range (const WaveformSample *samples, int count, WaveformRep
 
         sum+= ptr->frequency;
     }
+    // Calculating frequency drift from standard 50 Hz.
     report->freqMean = sum/count;
     report->freqDrift = report->freqMean - 50.0;
 }
@@ -148,15 +149,32 @@ WaveformReport analyseWaveform (const WaveformSample *samples, int count) {
     report.dcB = compute_dc_offset(samples, count, 1);
     report.dcC = compute_dc_offset(samples, count, 2);
 
-    // Clipped samples per phase
-    report.clipA = count_clipped (samples, count, 0, 324.9);
-    report.clipB = count_clipped (samples, count, 1, 324.9);
-    report.clipC = count_clipped (samples, count, 2, 324.9);
+    //Clipped samples per phase
+    report.clipA = count_clipped(samples, count, 0, 324.9);
+    report.clipB = count_clipped(samples, count, 1, 324.9);
+    report.clipC = count_clipped(samples, count, 2, 324.9);
 
-    //Compliance
-    report.compliantA = check_compliance(report.rmsA, 230.0);
-    report.compliantB = check_compliance(report.rmsB, 230.0);
-    report.compliantC = check_compliance(report.rmsC, 230.0);
+
+    // RMS Compliance and Clipping Logic
+    report.statusA = 0;
+    report.statusB = 0;
+    report.statusC = 0;
+
+    // If clipping occurred, set bit 0.
+    if (report.clipA >0)
+        report.statusA |= STATUS_CLIPPED;
+    if (report.clipB >0)
+        report.statusB |= STATUS_CLIPPED;
+    if (report.clipC >0)
+        report.statusC |= STATUS_CLIPPED;
+
+    // If RMS is out of tolerance (outside of 230V +- 10%), set bit 1.
+    if (!check_compliance(report.rmsA, 230.0))
+        report.statusA |= STATUS_OUT_OF_TOL;
+    if (!check_compliance(report.rmsB, 230.0))
+        report.statusB |= STATUS_OUT_OF_TOL;
+    if (!check_compliance(report.rmsC, 230.0))
+        report.statusC |= STATUS_OUT_OF_TOL;
 
     //Calculate ranges for Frequency, Power Factor and THD percentage.
     compute_range(samples, count, &report);

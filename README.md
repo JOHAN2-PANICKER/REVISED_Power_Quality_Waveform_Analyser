@@ -3,14 +3,14 @@
 #Overview
 This project is a C-based Power Quality Waveform Analyser that processes a CSV file containing 3-phase power quality measurements, analysis the waveform data and produces a structured report. 
 
-This project performs waveform analysis and evaluates power quality against engineering standards. 
+This project performs waveform analyses and evaluates power quality against engineering standards. 
 
 #Core Analysis
-- RMS Voltage (Phase A,B and C)
+- RMS Voltage (Phase A, B and C)
 - Peak-to-Peak Voltage
 - DC Offset
 - Clipped Sample Count (|V|>= 324.9V)
-- Voltage Compliance (EN 50160: 260V +- 10%)
+- Voltage Compliance (EN 50160: 230V +- 10%)
 
 #Extended Analysis
 - Frequency Range (Min/Max)
@@ -42,7 +42,7 @@ This project performs waveform analysis and evaluates power quality against engi
 **OPTION 2: Command-Line (gcc)**
 Navigate to the project directory and run:
 
-'gcc -std=c99 -wall -Wextra -o waveform_analyser main.c io.c waveform.c -lm'
+[gcc -std=c99 -Wall -Wextra -o waveform_analyser main.c io.c waveform.c -lm]
 
 -std=c99 ensures compatibility with code.
 
@@ -84,4 +84,12 @@ Assumes CSV file contains:
 - THD
 - Sampling Rate ~ 5000 samples/sec
 - Nominal Frequency = 50 Hz
-- All data types are in correct column order.
+- All data types are in correct column order in the csv file.
+
+#Summary
+This project demonstrates:
+- modular C program design
+- pointer-based data handling
+- file I/O and CSV parsing
+- waveform analysis and engineering compliance checks
+- use of bitwise status flags for per-phase health reporting
