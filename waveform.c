@@ -28,7 +28,6 @@ static double compute_rms (const WaveformSample *samples, int n, int phase) {
         sum_sq += v * v;
     }
     return sqrt(sum_sq / n);
-
 }
 
     /* Compute peak-to-peak voltage for one phase
@@ -77,13 +76,55 @@ static int count_clipped (const WaveformSample *samples, int n, int phase, doubl
 }
 /* Check EN 50160 compliance for 230 V +- 10%
  * 207 V <= RMS <= 253 v */
-
 static int check_compliance (double rms, double nominal) {
     double lower = nominal * 0.9;
     double upper = nominal * 1.1;
 
     return (rms >= lower && rms <= upper);
 }
+// Helper function to compute the ranges for Frequency, Power Factor and THD.
+static void compute_range (const WaveformSample *samples, int count, WaveformReport *report) {
+    const WaveformSample *ptr = samples;
+    // Direct data from samples to structure values for frequency range.
+    report->freqMin = samples->frequency;
+    report->freqMax = samples->frequency;
+    //Direct data from samples to structure values for PF range.
+    report->pfMin = samples->power_factor;
+    report->pfMax = samples->power_factor;
+    //Direct data from samples to structure values for THD range.
+    report->thdMin = samples->thd_percent;
+    report->thdMax = samples->thd_percent;
+
+    //Loop to identify Min and Max Values for above variables.
+    double sum = 0.0;
+
+    for (int i=0; i<count; i++, ptr++){
+        if (ptr->frequency < report->freqMin) report ->freqMin = ptr->frequency;
+        if (ptr->frequency > report->freqMax) report->freqMax = ptr->frequency;
+
+        if (ptr->power_factor < report->pfMin) report->pfMin = ptr->power_factor;
+        if (ptr->power_factor > report->pfMax) report->pfMax = ptr->power_factor;
+
+        if (ptr->thd_percent < report->thdMin) report->thdMin = ptr->thd_percent;
+        if (ptr->thd_percent > report->thdMax) report->thdMax = ptr ->thd_percent;
+
+        sum+= ptr->frequency;
+    }
+    report->freqMean = sum/count;
+    report->freqDrift = report->freqMean - 50.0;
+}
+//Helper Function to compute Standard Deviation.
+static double compute_std_dev (const WaveformSample *samples, int count, int phase, double mean) {
+    double sum_sq = 0.0;
+    const WaveformSample *ptr = samples;
+
+    for (int i=0; i<count; i++, ptr++) {
+        double v = getPhaseVoltage(ptr, phase);
+        double diff = v - mean;
+        sum_sq += diff * diff;
+    } return sqrt (sum_sq / count);
+}
+
 
 // Main analysisWaveform () function.
 WaveformReport analyseWaveform (const WaveformSample *samples, int count) {
@@ -117,6 +158,14 @@ WaveformReport analyseWaveform (const WaveformSample *samples, int count) {
     report.compliantB = check_compliance(report.rmsB, 230.0);
     report.compliantC = check_compliance(report.rmsC, 230.0);
 
+    //Calculate ranges for Frequency, Power Factor and THD percentage.
+    compute_range(samples, count, &report);
+
+    //Calculate standard deviation.
+    report.stdA = compute_std_dev(samples, count, 0, report.dcA);
+    report.stdB = compute_std_dev(samples, count, 1, report.dcB);
+    report.stdC = compute_std_dev(samples, count, 2, report.dcC);
+
     return report;
 
 }
@@ -146,23 +195,27 @@ WaveformReport analyseWaveform (const WaveformSample *samples, int count) {
 //Debug Helper: validate Phase Shift between Phase A and Phase B.
 void debugPhaseShiftCheck (const WaveformSample *samples, int count){
     if (!samples || count <= 0) return;
+    // Code to ensure only first 100 rows are reviewed for phase shift difference.
+    int samplesPerCycle = 100;
+    if (count < samplesPerCycle) samplesPerCycle = count;
 
     int idxA = 0, idxB = 0;
 
     // loop to find the max voltage for Phase A and Phase B.
-    for (int i = 1; i < count; i++) {
+    for (int i = 1; i < samplesPerCycle; i++) {
         if (samples[i].phase_A_voltage > samples[idxA].phase_A_voltage)
             idxA = i;
 
-        if (samples[i].phase_B_voltage > samples [idxB].phase_B_voltage)
+        if (samples[i].phase_C_voltage > samples [idxB].phase_C_voltage)
             idxB = i;
     }
     //to calculate difference in rows between Phase A and Phase B.
     int diff = idxB - idxA;
     if (diff < 0) diff = -diff;
 
-
     printf("\n Phase Shift Check at 50 Hz: \n");
+    printf("Phase A peak row = %d\n", idxA);
+    printf("Phase B peak row = %d\n", idxB);
     printf("Row Difference (between Phase A and Phase B) = %d (%s) \n",
            diff,
            (diff == 33) ? "OK (~120 degree phase shift)" : "Phase Shift is not correct");

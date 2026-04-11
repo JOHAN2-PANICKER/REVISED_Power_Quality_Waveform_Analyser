@@ -150,7 +150,7 @@ int writeResults (const char*filename, const WaveformReport *report){
             report->dcA, report->dcB, report->dcC);
 
     fprintf(fp, "\nClipped Samples per-phase (|V| >= 324.9V, any phase):\n");
-    fprintf(fp, "Phase A: %d\n Phase B: %d\n Phase C: %d\n",
+    fprintf(fp, "Phase A: %d\nPhase B: %d\nPhase C: %d\n",
             report->clipA, report->clipB, report->clipC);
 
     fprintf(fp, "\nCompliance (+/-10%% of 230V):\n");
@@ -158,6 +158,22 @@ int writeResults (const char*filename, const WaveformReport *report){
             report->compliantA ? "PASS" : "FAIL",
             report->compliantB ? "PASS" : "FAIL",
             report->compliantC ? "PASS" : "FAIL");
+
+    fprintf(fp, "\nFrequency Range (over the 200 ms window):\n");
+    fprintf(fp, "Min: %.3f Hz\nMax: %.3f Hz\nFrequency Drift: %.3f Hz\n",
+             report->freqMin, report->freqMax, report->freqDrift);
+
+    fprintf(fp, "\nPower Factor Range:\n");
+    fprintf(fp, "Min: %.3f\nMax: %.3f\n",
+            report->pfMin, report->pfMax);
+
+    fprintf(fp, "\nTHD Range:\n");
+    fprintf(fp, "Min: %.2f %\nMax: %.2f %\n",
+            report->thdMin, report->thdMax);
+
+    fprintf(fp, "\nStandard Deviation: \n");
+    fprintf(fp, "Phase A: %.2f V\nPhase B: %.2f V\nPhase C: %.2f V\n",
+    report->stdA, report->stdB, report->stdC);
 
     fclose (fp);
     return 1;

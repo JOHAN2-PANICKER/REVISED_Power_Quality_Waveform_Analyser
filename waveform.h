@@ -12,12 +12,12 @@ typedef struct {
     double p2pA, p2pB, p2pC;
     double dcA, dcB, dcC;
     int clipA, clipB, clipC;
-
     int compliantA, compliantB, compliantC;
 
-    /* double freqMin, freqMax;
+    double freqMin, freqMax, freqMean, freqDrift;
     double pfMin, pfMax;
-    double thdMin, thdMax; */
+    double thdMin, thdMax;
+    double stdA, stdB, stdC;
 }WaveformReport;
 
 WaveformReport analyseWaveform (const WaveformSample *samples, int count);
