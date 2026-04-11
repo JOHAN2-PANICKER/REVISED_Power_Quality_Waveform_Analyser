@@ -5,9 +5,9 @@
 #include "io.h"
 #include "waveform.h"
 
-#define RAW_DATA_TEST 0
-#define RMS_VALIDATION_TEST 0
-#define PHASE_SHIFT_TEST 0
+#define RAW_DATA_TEST 1
+#define RMS_VALIDATION_TEST 1
+#define PHASE_SHIFT_TEST 1
 
 int main(int argc, char*argv[]){ /*argc=argument count (how many strings passed),
  * argv= argument vector (array of character points, each entry is one string).
@@ -18,7 +18,7 @@ int main(int argc, char*argv[]){ /*argc=argument count (how many strings passed)
     //Check if filename is provided.
     if (argc <2){ // check to ensure argv[0] has program name and argv[1] has filename.
         // Error message prompting the correct layout for the CSV file.
-        printf("Usage: %s <csv_file>\n Add datasheet csv file into 'cmake-build-debug' folder.",argv[0]);
+        printf("Usage: %s <csv_file>\n Add datasheet csv file into 'cmake-build-debug' folder.\n",argv[0]);
         return 1;
     }
 

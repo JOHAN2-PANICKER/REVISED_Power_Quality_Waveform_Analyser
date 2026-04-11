@@ -168,7 +168,7 @@ int writeResults (const char*filename, const WaveformReport *report){
             report->pfMin, report->pfMax);
 
     fprintf(fp, "\nTHD Range:\n");
-    fprintf(fp, "Min: %.2f %\nMax: %.2f %\n",
+    fprintf(fp, "Min: %.2f %%\nMax: %.2f %%\n",
             report->thdMin, report->thdMax);
 
     fprintf(fp, "\nStandard Deviation: \n");

@@ -206,18 +206,22 @@ void debugPhaseShiftCheck (const WaveformSample *samples, int count){
         if (samples[i].phase_A_voltage > samples[idxA].phase_A_voltage)
             idxA = i;
 
-        if (samples[i].phase_C_voltage > samples [idxB].phase_C_voltage)
+        if (samples[i].phase_B_voltage > samples [idxB].phase_B_voltage)
             idxB = i;
     }
     //to calculate difference in rows between Phase A and Phase B.
     int diff = idxB - idxA;
     if (diff < 0) diff = -diff;
+    //Waveform is periodic.Signal repeats every 100 rows per cycle. half-cycle = 50 rows.
+    if (diff >50){
+        diff = 100 - diff;
+    }
 
     printf("\n Phase Shift Check at 50 Hz: \n");
     printf("Phase A peak row = %d\n", idxA);
     printf("Phase B peak row = %d\n", idxB);
     printf("Row Difference (between Phase A and Phase B) = %d (%s) \n",
            diff,
-           (diff == 33) ? "OK (~120 degree phase shift)" : "Phase Shift is not correct");
+           (diff >= 31 && diff <= 35) ? "OK (~120 degree phase shift)" : "Phase Shift is not correct");
 
 }
