@@ -92,4 +92,4 @@ This project demonstrates:
 - pointer-based data handling
 - file I/O and CSV parsing
 - waveform analysis and engineering compliance checks
-- use of bitwise status flags for pre-phase health checks. 
+- use of bitwise status flags for phase health checks. 

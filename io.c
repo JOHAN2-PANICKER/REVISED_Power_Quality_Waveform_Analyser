@@ -17,14 +17,19 @@ static int countRows (const char*filename) { //static= fn only visible inside c.
 
     char line[256];//temp storage to hold one line of text from CSV file.256 because strings can take max of 255 char + \0.
     int count = 0;
+    double t, a, b, c, i, f, pf, thd;
 
     //Closes file if datasheet is empty.
     if (fgets(line, sizeof(line), fp) == NULL) {
         fclose(fp);
+        printf("CSV file is empty. No header row or data rows.");
         return 0;
     }
-    //Create while loop to count rows after the header until empty.
+
+    //Create while loop to count only the valid data rows, avoiding counting blank lines/rows.
     while (fgets(line,sizeof(line),fp) != NULL) {
+        if (sscanf(line, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
+            &t, &a, &b, &c, &i, &f, &pf, &thd) ==8)
         count++;
     }
     fclose(fp);
@@ -44,6 +49,7 @@ static WaveformSample* allocateSamples(int count){
 //Create a function that populates samples array using pointer-based access.
 static int populateSamples(FILE *fp,WaveformSample *samples) {
     char line[256];
+    int loaded = 0; //count for valid parsed rows loaded into array.
 
     //Skip header row.
     if (fgets(line, sizeof(line), fp) == NULL) {
@@ -62,8 +68,9 @@ static int populateSamples(FILE *fp,WaveformSample *samples) {
                    &ptr->line_current,
                    &ptr->frequency,
                    &ptr->power_factor,
-                   &ptr->thd_percent) == 8) // '==8' included as fail-safe to ensure 8 rows of data is captured.
+                   &ptr->thd_percent) == 8) { // '==8' included as fail-safe to ensure 8 rows of data is captured.
             ptr++; //pointer-based traversal.
+            loaded++;}
     }
 
     return 1;
@@ -75,6 +82,7 @@ WaveformSample *loadCSV(const char*filename, int *count){
     *count = countRows(filename);
     //Return if csv file is empty.
     if (*count <= 0){
+        printf("countRows Error: csv file is empty or has no data rows.\n");
         return NULL;
     }
     //Return if samples are empty.
@@ -91,12 +99,15 @@ WaveformSample *loadCSV(const char*filename, int *count){
     }
 
     //Return and error message if function failed to populate samples.
-    if (!populateSamples(fp,samples)) { //Not statement
-        printf("loadCSV: failed to populate samples.\n");
+    int loaded = populateSamples (fp,samples);
+
+    if (loaded <=0) {
+        printf("loadCSV: failed to populate any valid samples from CSV.\n");
         fclose(fp);
         free(samples);
         return NULL;
     }
+    *count = loaded;
     fclose(fp);
     return samples;
 }
