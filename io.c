@@ -50,6 +50,8 @@ static WaveformSample* allocateSamples(int count){
 static int populateSamples(FILE *fp,WaveformSample *samples) {
     char line[256];
     int loaded = 0; //count for valid parsed rows loaded into array.
+    int invalid = 0; //count for invalid data rows identified.
+    int lineNum = 1; //variable to identify row with invalid data.
 
     //Skip header row.
     if (fgets(line, sizeof(line), fp) == NULL) {
@@ -60,6 +62,7 @@ static int populateSamples(FILE *fp,WaveformSample *samples) {
 
     //Create while loop to capture each row into the samples array until row is empty.
     while (fgets(line, sizeof(line), fp) != NULL) {
+        lineNum++;
         if (sscanf(line, "%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf",
                    &ptr->timestamp,
                    &ptr->phase_A_voltage,
@@ -68,13 +71,17 @@ static int populateSamples(FILE *fp,WaveformSample *samples) {
                    &ptr->line_current,
                    &ptr->frequency,
                    &ptr->power_factor,
-                   &ptr->thd_percent) == 8) { // '==8' included as fail-safe to ensure 8 rows of data is captured.
+                   &ptr->thd_percent) == 8) { // '==8' included to ensure 8 rows of data is captured.
             ptr++; //pointer-based traversal.
             loaded++;}
+        else {
+            printf("Warning: Invalid data at line %d (skipped)\n", lineNum);
+            invalid++;
+        }
     }
-
-    return 1;
-
+    if (invalid >0){
+        printf("Total invalid rows skipped: %d\n", invalid);
+    }    return loaded;
 }
 
 // Create function to load csv data into 'WaveformSample' array.
