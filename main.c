@@ -6,8 +6,8 @@
 #include "waveform.h"
 
 #define RAW_DATA_TEST 0
-#define RMS_VALIDATION_TEST 0
-#define PHASE_SHIFT_TEST 0
+#define RMS_VALIDATION_TEST 1
+#define PHASE_SHIFT_TEST 1
 
 int main(int argc, char*argv[]){ /*argc=argument count (how many strings passed),
  * argv= argument vector (array of character points, each entry is one string).

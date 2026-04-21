@@ -190,23 +190,32 @@ WaveformReport analyseWaveform (const WaveformSample *samples, int count) {
 // Debug helper: validate RMS for each Phase.
  void debugRMSValidation ( int count, const WaveformReport *report){
     if (!report || count <= 0) return;
-    // RMS tolerance band.
-    double lower = 207.0;
-    double upper = 253.0;
+    // Alternative RMS estimate Formula: Vrms =~ Vpp / 2 * sqrt(2)
+  double altRmsA = report -> p2pA / (2.0 * sqrt(2.0));
+  double altRmsB = report -> p2pA / (2.0 * sqrt(2.0));
+  double altRmsC = report -> p2pA / (2.0 * sqrt(2.0));
 
-    printf("\n RMS Check (EN 50160 +-10% band):\n");
+  //Compare difference between RMS calculated through compute_RMS() and altRMS.
+  double diffA = fabs(report->rmsA - altRmsA);
+  double diffB = fabs(report->rmsB - altRmsB);
+  double diffC = fabs(report->rmsC - altRmsC);
 
-    printf("Phase A: %.3f V (%s)\n",
-           report->rmsA,
-           (report->rmsA >= lower && report->rmsA <= upper) ? "OK" : "OUT OF RANGE");
+  // allow small difference due to sampling/noise.
+  double tolerance = 2.0;
 
-    printf("Phase B: %.3f V (%s)\n",
-           report->rmsB,
-           (report->rmsB >= lower && report->rmsB <= upper) ? "OK" : "OUT OF RANGE");
+  printf("\nRMS Validation (alt formula: Vrms = Vpp / 2*sqrt(2): \n");
 
-    printf("Phase C: %.3f V (%s)\n",
-           report->rmsC,
-           (report->rmsC >= lower && report->rmsC <= upper) ? "OK" : "OUT OF RANGE");
+  printf ("Phase A: calc = %.3f V, alt = %.3f V, diff = %.3f V (%s)\n",
+          report->rmsA, altRmsA, diffA,
+          (diffA <= tolerance) ? "OK" : "CHECK RMS");
+
+  printf ("Phase B: calc = %.3f V, alt = %.3f V, diff = %.3f V (%s)\n",
+          report->rmsB, altRmsB, diffB,
+          (diffB <= tolerance) ? "OK" : "CHECK RMS");
+
+  printf ("Phase A: calc = %.3f V, alt = %.3f V, diff = %.3f V (%s)\n",
+          report->rmsC, altRmsC, diffC,
+          (diffC <= tolerance) ? "OK" : "CHECK RMS");
 }
 
 //Debug Helper: validate Phase Shift between Phase A and Phase B.
