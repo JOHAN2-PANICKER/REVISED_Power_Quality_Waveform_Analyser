@@ -71,7 +71,7 @@ static int populateSamples(FILE *fp,WaveformSample *samples) {
                    &ptr->line_current,
                    &ptr->frequency,
                    &ptr->power_factor,
-                   &ptr->thd_percent) == 8) { // '==8' included to ensure 8 rows of data is captured.
+                   &ptr->thd_percent) == 8) { // '==8' included  to ensure 8 rows of data is captured.
             ptr++; //pointer-based traversal.
             loaded++;}
         else {
